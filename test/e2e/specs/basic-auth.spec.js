@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { restoreSqliteSnapshot } from "../util-test";
+import { login, restoreSqliteSnapshot } from "../util-test";
 
 const serverUrl = require("../../../playwright.config.js").url;
 
@@ -22,19 +22,31 @@ test.describe("/metrics basic auth", () => {
         expect(response.status()).toBe(401);
     });
 
-    test("returns 200 with correct credentials", async ({ request }) => {
+    // Fork: username and password would bypass the passkey, so only API keys are accepted
+    test("returns 401 with correct username and password", async ({ request }) => {
         const response = await request.get(`${serverUrl}/metrics`, {
             headers: {
                 Authorization: "Basic " + btoa("admin:Kuma-E2E-8f4Q2xR9p"),
             },
         });
-        expect(response.status()).toBe(200);
+        expect(response.status()).toBe(401);
     });
 
-    test("response contains prometheus metrics", async ({ request }) => {
+    test("returns prometheus metrics with an API key", async ({ page, request }) => {
+        await page.goto("./settings/api-keys");
+        await login(page);
+        await page.getByRole("button", { name: "Add API Key" }).click();
+        await page.locator("#name").fill("e2e metrics");
+        await page.getByLabel("Don't expire").check();
+        await page.getByRole("button", { name: "Generate" }).click();
+
+        const keyInput = page.locator(".modal.show").filter({ hasText: "Key Added" }).locator("input");
+        await expect(keyInput).not.toHaveValue("");
+        const apiKey = await keyInput.inputValue();
+
         const response = await request.get(`${serverUrl}/metrics`, {
             headers: {
-                Authorization: "Basic " + btoa("admin:Kuma-E2E-8f4Q2xR9p"),
+                Authorization: "Basic " + btoa(":" + apiKey),
             },
         });
         expect(response.status()).toBe(200);

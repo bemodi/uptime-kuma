@@ -80,77 +80,18 @@
                     </button>
                 </div>
             </div>
-
-            <div class="my-4">
-                <!-- Advanced -->
-                <h5 class="my-4 settings-subheading">{{ $t("Advanced") }}</h5>
-
-                <div class="mb-4">
-                    <button
-                        v-if="settings.disableAuth"
-                        id="enableAuth-btn"
-                        class="btn btn-outline-primary me-2 mb-2"
-                        @click="enableAuth"
-                    >
-                        {{ $t("Enable Auth") }}
-                    </button>
-                    <button
-                        v-if="!settings.disableAuth"
-                        id="disableAuth-btn"
-                        class="btn btn-primary me-2 mb-2"
-                        @click="confirmDisableAuth"
-                    >
-                        {{ $t("Disable Auth") }}
-                    </button>
-                </div>
-            </div>
         </div>
 
         <TwoFADialog ref="TwoFADialog" />
-
-        <Confirm
-            ref="confirmDisableAuth"
-            btn-style="btn-danger"
-            :yes-text="$t('I understand, please disable')"
-            :no-text="$t('Leave')"
-            @yes="disableAuth"
-        >
-            <i18n-t tag="p" keypath="disableauth.message1">
-                <template #disableAuth>
-                    <strong>{{ $t("disable authentication") }}</strong>
-                </template>
-            </i18n-t>
-            <i18n-t tag="p" keypath="disableauth.message2">
-                <template #intendThirdPartyAuth>
-                    <strong>{{ $t("where you intend to implement third-party authentication") }}</strong>
-                </template>
-            </i18n-t>
-            <p>{{ $t("Please use this option carefully!") }}</p>
-
-            <div class="mb-3">
-                <label for="current-password2" class="form-label">
-                    {{ $t("Current Password") }}
-                </label>
-                <input
-                    id="current-password2"
-                    v-model="password.currentPassword"
-                    type="password"
-                    class="form-control"
-                    required
-                />
-            </div>
-        </Confirm>
     </div>
 </template>
 
 <script>
-import Confirm from "../../components/Confirm.vue";
 import TwoFADialog from "../../components/TwoFADialog.vue";
 import { authClient } from "../../auth-client";
 
 export default {
     components: {
-        Confirm,
         TwoFADialog,
     },
 
@@ -206,39 +147,6 @@ export default {
                     this.password.repeatNewPassword = "";
                 }
             }
-        },
-
-        /**
-         * Disable authentication for web app access
-         * @returns {void}
-         */
-        disableAuth() {
-            this.settings.disableAuth = true;
-
-            // Need current password to disable auth
-            // Set it to empty if done
-            this.saveSettings(() => {
-                this.password.currentPassword = "";
-                this.$root.username = null;
-            }, this.password.currentPassword);
-        },
-
-        /**
-         * Enable authentication for web app access
-         * @returns {void}
-         */
-        enableAuth() {
-            this.settings.disableAuth = false;
-            this.saveSettings();
-            location.reload();
-        },
-
-        /**
-         * Show confirmation dialog for disable auth
-         * @returns {void}
-         */
-        confirmDisableAuth() {
-            this.$refs.confirmDisableAuth.show();
         },
     },
 };
