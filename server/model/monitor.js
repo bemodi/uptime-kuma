@@ -32,6 +32,7 @@ const {
     checkCertificate,
     checkStatusCode,
     getTotalClientInRoom,
+    LOGGED_IN_ROOM,
     httpNtlm,
     radius,
     kafkaProducerAsync,
@@ -1061,7 +1062,7 @@ class Monitor extends BeanModel {
 
             // Send to frontend
             log.debug("monitor", `[${this.name}] Send to socket`);
-            io.to(this.user_id).emit("heartbeat", bean.toJSON());
+            io.to(LOGGED_IN_ROOM).emit("heartbeat", bean.toJSON());
             Monitor.sendStats(io, this.id, this.user_id);
 
             // Store to database
@@ -1318,24 +1319,28 @@ class Monitor extends BeanModel {
      * @returns {Promise<void>}
      */
     static async sendStats(io, monitorID, userID) {
-        const hasClients = getTotalClientInRoom(io, userID) > 0;
+        const hasClients = getTotalClientInRoom(io, LOGGED_IN_ROOM) > 0;
         let uptimeCalculator = await UptimeCalculator.getUptimeCalculator(monitorID);
 
         if (hasClients) {
             // Send 24 hour average ping
             let data24h = await uptimeCalculator.get24Hour();
-            io.to(userID).emit("avgPing", monitorID, data24h.avgPing ? Number(data24h.avgPing.toFixed(2)) : null);
+            io.to(LOGGED_IN_ROOM).emit(
+                "avgPing",
+                monitorID,
+                data24h.avgPing ? Number(data24h.avgPing.toFixed(2)) : null
+            );
 
             // Send 24 hour uptime
-            io.to(userID).emit("uptime", monitorID, 24, data24h.uptime);
+            io.to(LOGGED_IN_ROOM).emit("uptime", monitorID, 24, data24h.uptime);
 
             // Send 30 day uptime
             let data30d = await uptimeCalculator.get30Day();
-            io.to(userID).emit("uptime", monitorID, 720, data30d.uptime);
+            io.to(LOGGED_IN_ROOM).emit("uptime", monitorID, 720, data30d.uptime);
 
             // Send 1-year uptime
             let data1y = await uptimeCalculator.get1Year();
-            io.to(userID).emit("uptime", monitorID, "1y", data1y.uptime);
+            io.to(LOGGED_IN_ROOM).emit("uptime", monitorID, "1y", data1y.uptime);
 
             // Send Cert Info
             await Monitor.sendCertInfo(io, monitorID, userID);
@@ -1357,7 +1362,7 @@ class Monitor extends BeanModel {
     static async sendCertInfo(io, monitorID, userID) {
         let tlsInfo = await R.findOne("monitor_tls_info", "monitor_id = ?", [monitorID]);
         if (tlsInfo != null) {
-            io.to(userID).emit("certInfo", monitorID, tlsInfo.info_json);
+            io.to(LOGGED_IN_ROOM).emit("certInfo", monitorID, tlsInfo.info_json);
         }
     }
 
@@ -1375,7 +1380,7 @@ class Monitor extends BeanModel {
             const supportInfo = await DomainExpiry.checkSupport(monitor);
             const domain = await DomainExpiry.findByDomainNameOrCreate(supportInfo.domain);
             if (domain?.expiry) {
-                io.to(userID).emit("domainInfo", monitorID, domain.daysRemaining, new Date(domain.expiry));
+                io.to(LOGGED_IN_ROOM).emit("domainInfo", monitorID, domain.daysRemaining, new Date(domain.expiry));
             }
         } catch (e) {}
     }

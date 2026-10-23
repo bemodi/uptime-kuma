@@ -127,6 +127,7 @@ const {
     allowDevAllOrigin,
     printServerUrls,
     allowDevOrigin,
+    LOGGED_IN_ROOM,
 } = require("./util-server");
 
 log.debug("server", "Importing Notification");
@@ -1440,6 +1441,7 @@ async function updateMonitorNotification(monitorID, notificationIDList) {
 async function afterLogin(socket, user) {
     socket.userID = user.id;
     socket.join(user.id);
+    socket.join(LOGGED_IN_ROOM);
 
     let monitorList = await server.sendMonitorList(socket);
     await Promise.allSettled([

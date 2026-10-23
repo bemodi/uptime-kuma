@@ -561,6 +561,13 @@ exports.checkStatusCode = function (status, acceptedCodes) {
 };
 
 /**
+ * Socket.io room that every logged-in socket joins.
+ * All users are admins and share one view of the data, so live updates
+ * (heartbeats, lists, stats) go to this room instead of a room per user.
+ */
+exports.LOGGED_IN_ROOM = "loggedIn";
+
+/**
  * Get total number of clients in room
  * @param {Server} io Socket server instance
  * @param {string} roomName Name of room to check

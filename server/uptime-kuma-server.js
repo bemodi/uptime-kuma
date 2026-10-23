@@ -14,6 +14,7 @@ const path = require("path");
 const axios = require("axios");
 const { isSSL, sslKey, sslCert, sslKeyPassphrase } = require("./config");
 const { getSession, getDisableAuthSession } = require("./better-auth");
+const { LOGGED_IN_ROOM } = require("./util-server");
 // DO NOT IMPORT HERE IF THE MODULES USED `UptimeKumaServer.getInstance()`, put at the bottom of this file instead.
 
 /**
@@ -236,7 +237,7 @@ class UptimeKumaServer {
      */
     async sendMonitorList(socket) {
         let list = await this.getMonitorJSONList();
-        this.io.to(socket.userID).emit("monitorList", list);
+        this.io.to(LOGGED_IN_ROOM).emit("monitorList", list);
         return list;
     }
 
@@ -249,7 +250,7 @@ class UptimeKumaServer {
     async sendUpdateMonitorIntoList(socket, monitorID) {
         let list = await this.getMonitorJSONList(monitorID);
         if (list && list[monitorID]) {
-            this.io.to(socket.userID).emit("updateMonitorIntoList", list);
+            this.io.to(LOGGED_IN_ROOM).emit("updateMonitorIntoList", list);
         }
     }
 
@@ -260,7 +261,7 @@ class UptimeKumaServer {
      * @returns {Promise<void>}
      */
     async sendDeleteMonitorFromList(socket, monitorID) {
-        this.io.to(socket.userID).emit("deleteMonitorFromList", monitorID);
+        this.io.to(LOGGED_IN_ROOM).emit("deleteMonitorFromList", monitorID);
     }
 
     /**
@@ -318,7 +319,7 @@ class UptimeKumaServer {
      */
     async sendMaintenanceListByUserID(userID) {
         let list = await this.getMaintenanceJSONList(userID);
-        this.io.to(userID).emit("maintenanceList", list);
+        this.io.to(LOGGED_IN_ROOM).emit("maintenanceList", list);
         return list;
     }
 

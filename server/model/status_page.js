@@ -9,7 +9,7 @@ const { Feed } = require("feed");
 const config = require("../config");
 const dayjs = require("dayjs");
 
-const { setting } = require("../util-server");
+const { setting, LOGGED_IN_ROOM } = require("../util-server");
 const {
     STATUS_PAGE_ALL_DOWN,
     STATUS_PAGE_ALL_UP,
@@ -372,7 +372,7 @@ class StatusPage extends BeanModel {
             result[item.id] = await item.toJSON();
         }
 
-        io.to(socket.userID).emit("statusPageList", result);
+        io.to(LOGGED_IN_ROOM).emit("statusPageList", result);
         return list;
     }
 
