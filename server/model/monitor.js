@@ -1325,7 +1325,11 @@ class Monitor extends BeanModel {
         if (hasClients) {
             // Send 24 hour average ping
             let data24h = await uptimeCalculator.get24Hour();
-            io.to(LOGGED_IN_ROOM).emit("avgPing", monitorID, data24h.avgPing ? Number(data24h.avgPing.toFixed(2)) : null);
+            io.to(LOGGED_IN_ROOM).emit(
+                "avgPing",
+                monitorID,
+                data24h.avgPing ? Number(data24h.avgPing.toFixed(2)) : null
+            );
 
             // Send 24 hour uptime
             io.to(LOGGED_IN_ROOM).emit("uptime", monitorID, 24, data24h.uptime);
