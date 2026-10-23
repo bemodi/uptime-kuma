@@ -1,3 +1,4 @@
+import { expect } from "@playwright/test";
 const fs = require("fs");
 const path = require("path");
 const serverUrl = require("../../playwright.config.js").url;
@@ -78,8 +79,14 @@ export async function login(page) {
  * @returns {Promise<void>}
  */
 export async function passwordLogin(page, username, password) {
-    await page.getByRole("button", { name: "Log in with password" }).click();
-    await page.getByPlaceholder("Username").fill(username);
+    // The form is open already when the page came from a first-login link (?login=password)
+    const usernameInput = page.getByPlaceholder("Username");
+    const toggle = page.getByRole("button", { name: "Log in with password" });
+    await expect(usernameInput.or(toggle)).toBeVisible();
+    if (!(await usernameInput.isVisible())) {
+        await toggle.click();
+    }
+    await usernameInput.fill(username);
     await page.getByPlaceholder("Password").fill(password);
     await page.getByRole("button", { name: "Log in", exact: true }).click();
 }

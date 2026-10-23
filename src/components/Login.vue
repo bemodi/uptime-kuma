@@ -83,7 +83,7 @@
                 </div>
 
                 <button class="btn btn-link mt-2" type="button" @click="showPasswordForm = false">
-                    {{ $t("Log in with passkey") }}
+                    {{ $t("backToPasskeyLogin") }}
                 </button>
             </form>
         </div>
@@ -106,7 +106,8 @@ export default {
             token: "",
             res: null,
             tokenRequired: false,
-            showPasswordForm: false,
+            // ?login=password: link from the start password dialog, for the first login or after an access reset
+            showPasswordForm: this.$route?.query?.login === "password",
         };
     },
 
@@ -173,6 +174,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../assets/vars.scss";
+
 .form-container {
     display: flex;
     align-items: center;
@@ -196,5 +199,12 @@ export default {
     padding: 15px;
     margin: auto;
     text-align: center;
+}
+
+// Bootstrap gives .btn-link the light-theme link colour; app.scss only lightens a:not(.btn) in dark mode
+.btn-link {
+    .dark & {
+        color: $dark-font-color;
+    }
 }
 </style>

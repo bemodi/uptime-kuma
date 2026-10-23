@@ -54,6 +54,8 @@
                     <div class="modal-body">
                         <p>{{ $t("initialPasswordMsg") }}</p>
                         <CopyableInput v-model="shownPassword" disabled="disabled" data-testid="initial-password" />
+                        <p class="mt-3 mb-1">{{ $t("firstLoginLink") }}</p>
+                        <CopyableInput v-model="firstLoginLink" disabled="disabled" data-testid="first-login-link" />
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
@@ -88,6 +90,7 @@ export default {
             },
             shownUsername: "",
             shownPassword: "",
+            firstLoginLink: location.origin + "/dashboard?login=password",
         };
     },
 
