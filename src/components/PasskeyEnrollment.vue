@@ -70,6 +70,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@import "../assets/vars.scss";
+
 .form-container {
     display: flex;
     align-items: center;
@@ -93,5 +95,12 @@ export default {
     padding: 15px;
     margin: auto;
     text-align: center;
+}
+
+// Bootstrap gives .btn-link the light-theme link colour; app.scss only lightens a:not(.btn) in dark mode
+.btn-link {
+    .dark & {
+        color: $dark-font-color;
+    }
 }
 </style>

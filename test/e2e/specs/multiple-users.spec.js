@@ -12,8 +12,9 @@ async function takeShownPassword(page) {
     const passwordInput = page.getByTestId("initial-password").locator("input");
     await expect(passwordInput).not.toHaveValue("");
     const password = await passwordInput.inputValue();
+    const link = await page.getByTestId("first-login-link").locator("input").inputValue();
     await page.locator(".modal.show").getByRole("button", { name: "Continue" }).click();
-    return password;
+    return { password, link };
 }
 
 /**
@@ -25,6 +26,15 @@ async function takeShownPassword(page) {
  */
 async function firstLogin(page, username, password) {
     await passwordLogin(page, username, password);
+    await setUpPasskey(page);
+}
+
+/**
+ * The user has to set up a passkey before anything else
+ * @param {import('@playwright/test').Page} page User page with a virtual authenticator
+ * @returns {Promise<void>}
+ */
+async function setUpPasskey(page) {
     await expect(page.getByRole("heading", { name: "Set up a passkey" })).toBeVisible();
     await expect(page.getByText("Add New Monitor")).toHaveCount(0);
     await page.getByRole("button", { name: "Create passkey" }).click();
@@ -46,7 +56,8 @@ test.describe("Multiple users (all admins)", () => {
         await page.getByTestId("add-user-button").click();
         await page.locator("#new-user-username").fill("bob");
         await page.locator(".modal.show").getByRole("button", { name: "Add User" }).click();
-        const password = await takeShownPassword(page);
+        const { password, link } = await takeShownPassword(page);
+        expect(link).toBe(serverUrl + "/dashboard?login=password");
         const bobItem = page.getByTestId("user-item").filter({ hasText: "bob" });
         await expect(bobItem).toContainText("No passkey yet");
 
@@ -54,8 +65,13 @@ test.describe("Multiple users (all admins)", () => {
         const bobContext = await browser.newContext();
         const bobPage = await bobContext.newPage();
         await addVirtualAuthenticator(bobPage);
-        await bobPage.goto(serverUrl + "/dashboard");
-        await firstLogin(bobPage, "bob", password);
+
+        // The first-login link opens the password form directly
+        await bobPage.goto(link);
+        await bobPage.getByPlaceholder("Username").fill("bob");
+        await bobPage.getByPlaceholder("Password").fill(password);
+        await bobPage.getByRole("button", { name: "Log in", exact: true }).click();
+        await setUpPasskey(bobPage);
         await screenshot(testInfo, bobPage);
 
         // From now on the password alone is not enough for bob
@@ -74,9 +90,13 @@ test.describe("Multiple users (all admins)", () => {
         await page.goto("./settings/users");
         await bobItem.getByRole("button", { name: "Reset Access" }).click();
         await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
-        const newPassword = await takeShownPassword(page);
+        const { password: newPassword } = await takeShownPassword(page);
         await expect(bobItem).toContainText("No passkey yet");
-        await expect(bobPage.getByRole("button", { name: "Log in with passkey" })).toBeVisible();
+        // Bob is logged out: his page shows the login again (the form directly, he came via the first-login link)
+        await expect(
+            bobPage.getByPlaceholder("Username").or(bobPage.getByRole("button", { name: "Log in with passkey" }))
+        ).toBeVisible();
+        await expect(bobPage.getByText("Add New Monitor")).toHaveCount(0);
         await firstLogin(bobPage, "bob", newPassword);
 
         // Admin deactivates bob: his session ends and he cannot log in again
@@ -84,6 +104,7 @@ test.describe("Multiple users (all admins)", () => {
         await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
         await expect(bobItem).toContainText("Inactive");
 
+        await bobPage.goto(serverUrl + "/dashboard");
         await bobPage.getByRole("button", { name: "Log in with passkey" }).click();
         await expect(bobPage.locator(".alert.alert-danger")).toBeVisible();
         await screenshot(testInfo, bobPage);
