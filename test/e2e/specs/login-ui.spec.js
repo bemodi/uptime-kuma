@@ -33,10 +33,22 @@ async function contrastWithPage(locator) {
 }
 
 test.describe("Login page", () => {
-    for (const colorScheme of ["light", "dark"]) {
-        test(`password login link is readable in ${colorScheme} mode`, async ({ page }, testInfo) => {
-            await page.emulateMedia({ colorScheme });
+    test("light is the default, also on a dark system with the former 'auto' stored", async ({ page }) => {
+        await page.emulateMedia({ colorScheme: "dark" });
+        await page.goto("./dashboard");
+        await page.evaluate(() => (localStorage.theme = "auto"));
+        await page.reload();
+        await expect(page.locator(".app-layout")).toHaveClass(/\blight\b/);
+        await expect.poll(() => page.evaluate(() => localStorage.theme)).toBe("light");
+    });
+
+    for (const theme of ["light", "dark"]) {
+        test(`password login link is readable in ${theme} mode`, async ({ page }, testInfo) => {
+            // Dark only when chosen explicitly
+            await page.addInitScript((t) => (localStorage.theme = t), theme);
+            await page.emulateMedia({ colorScheme: theme });
             await page.goto("./dashboard");
+            await expect(page.locator(".app-layout")).toHaveClass(new RegExp(`\\b${theme}\\b`));
             const link = page.getByRole("button", { name: "Log in with password" });
             await expect(link).toBeVisible();
             expect(await contrastWithPage(link)).toBeGreaterThanOrEqual(4.5);

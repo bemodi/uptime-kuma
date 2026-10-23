@@ -40,18 +40,7 @@
                         {{ $t("Dark") }}
                     </label>
 
-                    <input
-                        id="btncheck3"
-                        v-model="$root.userTheme"
-                        type="radio"
-                        class="btn-check"
-                        name="theme"
-                        autocomplete="off"
-                        value="auto"
-                    />
-                    <label class="btn btn-outline-primary" for="btncheck3">
-                        {{ $t("Auto") }}
-                    </label>
+                    <!-- Fork: no "Auto" for the app; light is the default, dark only by choice -->
                 </div>
             </div>
         </div>

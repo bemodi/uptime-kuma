@@ -2,7 +2,9 @@ export default {
     data() {
         return {
             system: window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-            userTheme: localStorage.theme,
+            // Fork: light is always the default. Only an explicit choice of dark sticks; a stored "auto"
+            // (the former default, which followed the system) counts as light.
+            userTheme: localStorage.theme === "dark" ? "dark" : "light",
             userHeartbeatBar: localStorage.heartbeatBarTheme,
             styleElapsedTime: localStorage.styleElapsedTime,
             statusPageTheme: "light",
@@ -12,10 +14,8 @@ export default {
     },
 
     mounted() {
-        // Default Light (fork: the light glass theme is the default, dark stays selectable)
-        if (!this.userTheme) {
-            this.userTheme = "light";
-        }
+        // Store the normalised choice, so "auto" from before does not come back
+        localStorage.theme = this.userTheme;
 
         // Default Heartbeat Bar
         if (!this.userHeartbeatBar) {
