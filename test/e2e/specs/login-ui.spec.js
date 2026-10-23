@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { screenshot } from "../util-test";
+import { login, screenshot } from "../util-test";
 
 /**
  * WCAG contrast ratio between an element's text colour and the page background
@@ -43,6 +43,25 @@ test.describe("Login page", () => {
             await screenshot(testInfo, page);
         });
     }
+
+    // The minifier keeps only one of backdrop-filter / -webkit-backdrop-filter; Chromium needs the standard one
+    test("login card is frosted glass in light mode", async ({ page }) => {
+        await page.emulateMedia({ colorScheme: "light" });
+        await page.goto("./dashboard");
+        const card = page.locator(".form-container .form");
+        await expect(card).toBeVisible();
+        expect(await card.evaluate((el) => getComputedStyle(el).backdropFilter)).toContain("blur(50px)");
+    });
+
+    // backdrop-filter on a panel would trap modals inside it below Bootstrap's backdrop
+    test("panels that hold dialogs have no backdrop-filter", async ({ page }) => {
+        await page.emulateMedia({ colorScheme: "light" });
+        await page.goto("./settings/api-keys");
+        await login(page);
+        const panel = page.locator(".shadow-box-settings");
+        await expect(panel).toBeVisible();
+        expect(await panel.evaluate((el) => getComputedStyle(el).backdropFilter)).toBe("none");
+    });
 
     test("?login=password opens the password form directly", async ({ page }) => {
         await page.goto("./dashboard?login=password");

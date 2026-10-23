@@ -19,12 +19,19 @@ $glass-shadow: 0 12px 40px rgba(28, 39, 76, 0.08);
 $glass-blur: blur(50px) saturate(200%);
 $glass-radius: 18px;
 
-@mixin glass($opacity) {
+// $blur: false for panels that contain modals. backdrop-filter turns an element into a stacking
+// context and containing block, so a Bootstrap modal inside it ends up below the backdrop that
+// Bootstrap appends to <body> and cannot be clicked. On the soft underlay a blur barely shows anyway.
+@mixin glass($opacity, $blur: true) {
     background-color: rgba(255, 255, 255, $opacity);
-    backdrop-filter: $glass-blur;
-    -webkit-backdrop-filter: $glass-blur;
     border: 1px solid rgba(255, 255, 255, 0.65);
     box-shadow: $glass-edge, $glass-shadow;
+
+    @if $blur {
+        // Standard property last: the minifier keeps only one of the two, Chromium needs the unprefixed one
+        -webkit-backdrop-filter: $glass-blur;
+        backdrop-filter: $glass-blur;
+    }
 }
 
 // The underlay also covers the page edges when scrolling past the end
@@ -44,8 +51,10 @@ body.light:has(.app-layout) {
     background-attachment: fixed;
 
     // Header and mobile navigation: glass bars
+    // No blur on the header: nothing scrolls under it, and Chromium lets the page show through
+    // the part of the profile dropdown that hangs below a blurred header
     > header {
-        @include glass(0.55);
+        @include glass(0.55, false);
         border-width: 0 0 1px;
         border-radius: 0;
     }
@@ -72,13 +81,13 @@ body.light:has(.app-layout) {
 
     // Panels
     .shadow-box {
-        @include glass(0.6);
+        @include glass(0.62, false);
         border-radius: $glass-radius;
     }
 
     .shadow-box.p-0:has(.monitor-list),
     .shadow-box:has(> .monitor-list) {
-        @include glass(0.45);
+        @include glass(0.48, false);
     }
 
     .shadow-box-settings .settings-menu .menu-item {
@@ -163,7 +172,7 @@ body.light:has(.app-layout) {
 
     .btn-normal,
     .btn-outline-normal {
-        @include glass(0.7);
+        @include glass(0.7, false);
         border-radius: 50rem;
         color: $glass-text;
     }
@@ -209,9 +218,15 @@ body.light:has(.app-layout) {
     }
 
     // Overlays
-    .modal-content,
+    // Dialogs sit on Bootstrap's dark backdrop, a blur would only cost rendering time there
+    .modal-content {
+        @include glass(0.9, false);
+        border-radius: $glass-radius;
+    }
+
+    // Nearly opaque so text below does not show through the menu
     .dropdown-menu {
-        @include glass(0.78);
+        @include glass(0.98, false);
         border-radius: $glass-radius;
     }
 
@@ -242,8 +257,9 @@ body.light:has(.app-layout) {
 // Toasts are rendered outside the layout; frosted cards with the status colour as accent
 body.light:has(.app-layout) .Vue-Toastification__toast {
     background-color: rgba(255, 255, 255, 0.82);
-    backdrop-filter: $glass-blur;
+    // Standard property last: the minifier keeps only one of the two, Chromium needs the unprefixed one
     -webkit-backdrop-filter: $glass-blur;
+    backdrop-filter: $glass-blur;
     color: $glass-text;
     border: 1px solid rgba(255, 255, 255, 0.65);
     border-left: 5px solid $glass-blue;
