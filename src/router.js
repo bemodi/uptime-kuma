@@ -29,6 +29,7 @@ import Tags from "./components/settings/Tags.vue";
 import MonitorHistory from "./components/settings/MonitorHistory.vue";
 const Security = () => import("./components/settings/Security.vue");
 const Users = () => import("./components/settings/Users.vue");
+const AuditLog = () => import("./components/settings/AuditLog.vue");
 import Proxies from "./components/settings/Proxies.vue";
 import About from "./components/settings/About.vue";
 import RemoteBrowsers from "./components/settings/RemoteBrowsers.vue";
@@ -127,6 +128,10 @@ const routes = [
                             {
                                 path: "users",
                                 component: Users,
+                            },
+                            {
+                                path: "audit-log",
+                                component: AuditLog,
                             },
                             {
                                 path: "api-keys",

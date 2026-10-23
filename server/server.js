@@ -190,6 +190,8 @@ const { dockerSocketHandler } = require("./socket-handlers/docker-socket-handler
 const { maintenanceSocketHandler } = require("./socket-handlers/maintenance-socket-handler");
 const { apiKeySocketHandler } = require("./socket-handlers/api-key-socket-handler");
 const { generalSocketHandler } = require("./socket-handlers/general-socket-handler");
+const { auditLogSocketHandler } = require("./socket-handlers/audit-log-socket-handler");
+const { auditSocketMiddleware } = require("./audit-log");
 const { Settings } = require("./settings");
 const apicache = require("./modules/apicache");
 const { resetChrome } = require("./monitor-types/real-browser-monitor-type");
@@ -374,6 +376,7 @@ app.use(function (req, res, next) {
 
     log.debug("server", "Adding socket handler");
     io.on("connection", async (socket) => {
+        socket.use(auditSocketMiddleware(socket, (s) => server.getClientIP(s)));
         await sendInfo(socket, true);
 
         if (await needSetup()) {
@@ -1383,6 +1386,7 @@ app.use(function (req, res, next) {
         maintenanceSocketHandler(socket);
         apiKeySocketHandler(socket);
         userSocketHandler(socket);
+        auditLogSocketHandler(socket);
         remoteBrowserSocketHandler(socket);
         generalSocketHandler(socket, server);
         chartSocketHandler(socket);

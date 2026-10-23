@@ -3,6 +3,7 @@ const { log } = require("../../src/util");
 const Database = require("../database");
 const { Settings } = require("../settings");
 const dayjs = require("dayjs");
+const { clearOldAuditLog } = require("../audit-log");
 
 const DEFAULT_KEEP_PERIOD = 365;
 
@@ -54,6 +55,12 @@ const clearOldData = async () => {
         } catch (e) {
             log.error("clearOldData", `Failed to clear old data: ${e.message}`);
         }
+    }
+
+    try {
+        await clearOldAuditLog();
+    } catch (e) {
+        log.error("clearOldData", `Failed to clear old audit log: ${e.message}`);
     }
 
     log.debug("clearOldData", "Data cleared.");

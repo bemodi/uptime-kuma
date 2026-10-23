@@ -111,6 +111,9 @@ export default {
                 users: {
                     title: this.$t("Users"),
                 },
+                "audit-log": {
+                    title: this.$t("Audit Log"),
+                },
                 "api-keys": {
                     title: this.$t("API Keys"),
                 },
