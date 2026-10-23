@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import { randomInt } from "node:crypto";
 import { R } from "redbean-node";
 import { auth, createHeaders } from "../better-auth";
+import { deleteAllPasskeys } from "../passkey-policy";
 import { log } from "../../src/util";
 // @ts-ignore
 import { checkLogin } from "../util-server.js";
@@ -21,6 +22,7 @@ export interface UserListItem {
     username: string;
     name: string;
     active: boolean;
+    passkeyCount: number;
     createdAt: string;
     isSelf: boolean;
 }
@@ -44,14 +46,25 @@ export function generatePassword(): string {
  */
 export async function getUserList(selfId: string): Promise<UserListItem[]> {
     const rows = await R.knex("better_auth_user")
-        .select("id", "username", "displayUsername", "name", "banned", "createdAt")
-        .orderBy("createdAt");
+        .leftJoin("better_auth_passkey", "better_auth_passkey.userId", "better_auth_user.id")
+        .select(
+            "better_auth_user.id",
+            "username",
+            "displayUsername",
+            "better_auth_user.name",
+            "banned",
+            "better_auth_user.createdAt"
+        )
+        .count("better_auth_passkey.id as passkeyCount")
+        .groupBy("better_auth_user.id")
+        .orderBy("better_auth_user.createdAt");
 
     return rows.map((row: Record<string, any>) => ({
         id: row.id,
         username: row.displayUsername || row.username,
         name: row.name,
         active: !row.banned,
+        passkeyCount: Number(row.passkeyCount),
         createdAt: row.createdAt,
         isSelf: row.id === selfId,
     }));
@@ -150,13 +163,16 @@ export function userSocketHandler(socket: Socket): void {
         }
     });
 
-    socket.on("resetUserPassword", async (userId, callback) => {
+    // Recovery: remove all passkeys and set a new password. The user logs in with it once
+    // and has to set up a new passkey before anything else.
+    socket.on("resetUserAccess", async (userId, callback) => {
         try {
             checkLogin(socket);
             ensureOtherUser(socket, userId);
             const password = generatePassword();
             const headers = sessionHeaders(socket);
             await auth().api.setUserPassword({ body: { userId, newPassword: password }, headers });
+            await deleteAllPasskeys(userId);
             await auth().api.revokeUserSessions({ body: { userId }, headers });
             disconnectUser(userId);
             callback({ ok: true, password });

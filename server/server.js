@@ -8,6 +8,7 @@ import { auth, doubleCheckPassword, getDisableAuthSession, getSession } from "./
 import { createBetterAuthRouter, needSetup } from "./routers/better-auth-router";
 import { betterAuthSocketHandler } from "./socket-handlers/better-auth-socket-handler";
 import { userSocketHandler } from "./socket-handlers/user-socket-handler";
+import { needsPasskeyEnrollment } from "./passkey-policy";
 import { loadEnvFile } from "node:process";
 import * as fs from "node:fs";
 
@@ -386,6 +387,13 @@ app.use(function (req, res, next) {
             session = await getSession(socket.request.headers.cookie);
         } else {
             session = await getDisableAuthSession();
+        }
+
+        // Without a passkey the session only allows setting one up (fork: passkey-only login)
+        let passkeyEnrollmentUser = null;
+        if (session && (await needsPasskeyEnrollment(session.user.id))) {
+            passkeyEnrollmentUser = session.user.username;
+            session = null;
         }
 
         if (session) {
@@ -1387,6 +1395,8 @@ app.use(function (req, res, next) {
 
         if (session) {
             await afterLogin(socket, session.user);
+        } else if (passkeyEnrollmentUser) {
+            socket.emit("passkeyEnrollmentRequired", passkeyEnrollmentUser);
         } else {
             socket.emit("loginRequired");
             log.debug("auth", "need auth");

@@ -127,7 +127,8 @@
 
         <main>
             <router-view v-if="$root.loggedIn" />
-            <Login v-if="!$root.loggedIn && $root.allowLoginDialog" />
+            <PasskeyEnrollment v-if="!$root.loggedIn && $root.passkeyEnrollmentUser" />
+            <Login v-if="!$root.loggedIn && !$root.passkeyEnrollmentUser && $root.allowLoginDialog" />
         </main>
 
         <!-- Mobile Only -->
@@ -167,6 +168,7 @@
 
 <script>
 import Login from "../components/Login.vue";
+import PasskeyEnrollment from "../components/PasskeyEnrollment.vue";
 import compareVersions from "compare-versions";
 import { useToast } from "vue-toastification";
 const toast = useToast();
@@ -174,6 +176,7 @@ const toast = useToast();
 export default {
     components: {
         Login,
+        PasskeyEnrollment,
     },
 
     data() {

@@ -36,6 +36,7 @@ export default {
             remember: localStorage.remember !== "0",
             allowLoginDialog: false, // Allowed to show login dialog, but "loggedIn" have to be true too. This exists because prevent the login dialog show 0.1s in first before the socket server auth-ed.
             loggedIn: false,
+            passkeyEnrollmentUser: null, // Logged in with password, but has to set up a passkey first
             monitorList: {},
             monitorTypeList: {},
             maintenanceList: {},
@@ -125,10 +126,16 @@ export default {
             socket.on("session", (username) => {
                 this.loggedIn = true;
                 this.username = username;
+                this.passkeyEnrollmentUser = null;
             });
 
             socket.on("loginRequired", () => {
+                this.passkeyEnrollmentUser = null;
                 this.allowLoginDialog = true;
+            });
+
+            socket.on("passkeyEnrollmentRequired", (username) => {
+                this.passkeyEnrollmentUser = username;
             });
 
             socket.on("monitorList", (data) => {
@@ -386,6 +393,7 @@ export default {
                 this.loggedIn = false;
                 this.username = null;
                 this.allowLoginDialog = false;
+                this.passkeyEnrollmentUser = null;
                 this.clearData();
                 reconnectSocket();
             });

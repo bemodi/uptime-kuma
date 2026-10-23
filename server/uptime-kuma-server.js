@@ -15,6 +15,7 @@ const axios = require("axios");
 const { isSSL, sslKey, sslCert, sslKeyPassphrase } = require("./config");
 const { getSession, getDisableAuthSession } = require("./better-auth");
 const { LOGGED_IN_ROOM } = require("./util-server");
+const { needsPasskeyEnrollment } = require("./passkey-policy");
 // DO NOT IMPORT HERE IF THE MODULES USED `UptimeKumaServer.getInstance()`, put at the bottom of this file instead.
 
 /**
@@ -212,7 +213,8 @@ class UptimeKumaServer {
                 } else {
                     session = await getDisableAuthSession();
                 }
-                if (session) {
+                // Sessions without a passkey are only good for setting one up
+                if (session && !(await needsPasskeyEnrollment(session.user.id))) {
                     express.static(Database.screenshotDir)(req, res, next);
                 } else {
                     res.sendStatus(401);
