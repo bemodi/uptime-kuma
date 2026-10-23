@@ -7,6 +7,9 @@ import { log } from "../../src/util";
 // @ts-ignore
 import { allowDevOrigin } from "../util-server.js";
 import { generalErrorResponse } from "../util2";
+import { CLIENT_IP_HEADER } from "../audit-auth";
+// @ts-ignore
+import { writeAuditEntry } from "../audit-log.js";
 
 let processingSetup = false;
 let _hasUser = false;
@@ -16,6 +19,17 @@ let setupTimeout: NodeJS.Timeout | null = null;
 const expiredMsg = "Setup has expired. Please restart the server to try again.";
 
 /**
+ * Client IP of a request, honouring the Trust Proxy setting
+ * @param req Express request
+ * @returns Client IP
+ */
+async function clientIP(req: express.Request): Promise<string> {
+    // @ts-ignore
+    const { UptimeKumaServer } = await import("../uptime-kuma-server.js");
+    return UptimeKumaServer.getInstance().getClientIPwithProxy(req.socket.remoteAddress, req.headers);
+}
+
+/**
  * For testing: http://localhost:3001/api/auth/ok
  * @returns Express Router with better-auth routes and setup route.
  */
@@ -23,6 +37,9 @@ export async function createBetterAuthRouter() {
     const betterAuthRouter = express.Router();
     betterAuthRouter.all("/api/auth/*", async (req, res) => {
         allowDevOrigin(req, res);
+
+        // Always overwritten, so a client cannot choose its own IP
+        req.headers[CLIENT_IP_HEADER] = await clientIP(req);
         return toNodeHandler(auth())(req, res);
     });
 
@@ -78,6 +95,16 @@ export async function createBetterAuthRouter() {
                 log.debug("auth", "First user created:", user);
 
                 _hasUser = true;
+                await writeAuditEntry({
+                    userId: user.user.id,
+                    username,
+                    ip: await clientIP(req),
+                    source: "auth",
+                    action: "setup",
+                    target: { username },
+                    ok: true,
+                    msg: null,
+                });
                 res.json({ ok: true });
             } finally {
                 processingSetup = false;

@@ -14,6 +14,7 @@ import { createAuthMiddleware } from "better-auth/api";
 import * as oldAuth from "./auth.js";
 import { hasUser } from "./routers/better-auth-router";
 import { createPasskeyPlugin, passkeyAfterHook, passkeyBeforeHook } from "./passkey-policy";
+import { auditAuthAfterHook, auditAuthBeforeHook, CLIENT_IP_HEADER } from "./audit-auth";
 import { symmetricEncrypt } from "better-auth/crypto";
 // @ts-ignore
 import config from "./config.js";
@@ -117,6 +118,12 @@ function createAuthInstance() {
             enabled: true,
             disableSignUp: true,
         },
+        advanced: {
+            ipAddress: {
+                // Set by the better-auth router, used for rate limiting, sessions and the audit log
+                ipAddressHeaders: [CLIENT_IP_HEADER],
+            },
+        },
         rateLimit: {
             // Disabled in development (e.g. E2E tests) to avoid throttling rapid logins
             enabled: !isDevEnv(),
@@ -186,9 +193,19 @@ function createAuthInstance() {
                 }
 
                 await passkeyBeforeHook(ctx);
+                await auditAuthBeforeHook(ctx);
             }),
             after: createAuthMiddleware(async (ctx) => {
-                await passkeyAfterHook(ctx);
+                let rejection: unknown;
+                try {
+                    await passkeyAfterHook(ctx);
+                } catch (e) {
+                    rejection = e;
+                }
+                await auditAuthAfterHook(ctx, rejection);
+                if (rejection) {
+                    throw rejection;
+                }
             }),
         },
     });
