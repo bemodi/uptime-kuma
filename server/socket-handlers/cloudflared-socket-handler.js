@@ -1,4 +1,4 @@
-const { checkLogin, setSetting, setting } = require("../util-server");
+const { checkLogin, setSetting, setting, LOGGED_IN_ROOM } = require("../util-server");
 const { CloudflaredTunnel } = require("node-cloudflared-tunnel");
 const { UptimeKumaServer } = require("../uptime-kuma-server");
 const { log } = require("../../src/util");
@@ -38,9 +38,9 @@ module.exports.cloudflaredSocketHandler = (socket) => {
         try {
             checkLogin(socket);
             socket.join("cloudflared");
-            io.to(socket.userID).emit(prefix + "installed", cloudflared.checkInstalled());
-            io.to(socket.userID).emit(prefix + "running", cloudflared.running);
-            io.to(socket.userID).emit(prefix + "token", await setting("cloudflaredTunnelToken"));
+            io.to(LOGGED_IN_ROOM).emit(prefix + "installed", cloudflared.checkInstalled());
+            io.to(LOGGED_IN_ROOM).emit(prefix + "running", cloudflared.running);
+            io.to(LOGGED_IN_ROOM).emit(prefix + "token", await setting("cloudflaredTunnelToken"));
         } catch (error) {
             log.error("cloudflared", "Error in join handler: " + error.message);
         }

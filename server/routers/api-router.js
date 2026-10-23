@@ -5,6 +5,7 @@ const {
     percentageToColor,
     filterAndJoin,
     sendHttpError,
+    LOGGED_IN_ROOM,
 } = require("../util-server");
 const { R } = require("redbean-node");
 const apicache = require("../modules/apicache");
@@ -134,7 +135,7 @@ router.all("/api/push/:pushToken", async (request, response) => {
 
         await R.store(bean);
 
-        io.to(monitor.user_id).emit("heartbeat", bean.toJSON());
+        io.to(LOGGED_IN_ROOM).emit("heartbeat", bean.toJSON());
 
         Monitor.sendStats(io, monitor.id, monitor.user_id);
 
