@@ -7,6 +7,7 @@ import { getRandomInt, isDevEnv, log, sleep } from "../src/util";
 import { auth, doubleCheckPassword, getDisableAuthSession, getSession } from "./better-auth";
 import { createBetterAuthRouter, needSetup } from "./routers/better-auth-router";
 import { betterAuthSocketHandler } from "./socket-handlers/better-auth-socket-handler";
+import { userSocketHandler } from "./socket-handlers/user-socket-handler";
 import { loadEnvFile } from "node:process";
 import * as fs from "node:fs";
 
@@ -1129,6 +1130,11 @@ app.use(function (req, res, next) {
             try {
                 checkLogin(socket);
 
+                // Fork: login always needs a passkey, so authentication cannot be disabled
+                if (data.disableAuth) {
+                    throw new Error("Disable Auth is not available: login requires a passkey");
+                }
+
                 // If currently is disabled auth, don't need to check
                 // Disabled Auth + Want to Disable Auth => No Check
                 // Disabled Auth + Want to Enable Auth => No Check
@@ -1368,6 +1374,7 @@ app.use(function (req, res, next) {
         dockerSocketHandler(socket);
         maintenanceSocketHandler(socket);
         apiKeySocketHandler(socket);
+        userSocketHandler(socket);
         remoteBrowserSocketHandler(socket);
         generalSocketHandler(socket, server);
         chartSocketHandler(socket);

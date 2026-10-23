@@ -153,7 +153,8 @@ exports.basicAuth = async function (req, res, next) {
 };
 
 /**
- * Use use API Key if API keys enabled, else use basic auth
+ * Use API keys only. Username and password are not accepted, because they
+ * would bypass the passkey that login requires (fork: passkey-only login).
  * @param {express.Request} req Express request object
  * @param {express.Response} res Express response object
  * @param {express.NextFunction} next Next handler in chain
@@ -161,21 +162,11 @@ exports.basicAuth = async function (req, res, next) {
  */
 exports.apiAuth = async function (req, res, next) {
     if (!(await Settings.get("disableAuth"))) {
-        let usingAPIKeys = await Settings.get("apiKeysEnabled");
-        let middleware;
-        if (usingAPIKeys) {
-            middleware = basicAuth({
-                authorizer: apiAuthorizer,
-                authorizeAsync: true,
-                challenge: true,
-            });
-        } else {
-            middleware = basicAuth({
-                authorizer: userAuthorizer,
-                authorizeAsync: true,
-                challenge: true,
-            });
-        }
+        const middleware = basicAuth({
+            authorizer: apiAuthorizer,
+            authorizeAsync: true,
+            challenge: true,
+        });
         middleware(req, res, next);
     } else {
         next();
