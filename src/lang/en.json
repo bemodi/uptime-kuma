@@ -368,6 +368,7 @@
     "Log in with passkey": "Log in with passkey",
     "usePasswordLogin": "First login or access reset? Log in with password",
     "backToPasskeyLogin": "Back to passkey login",
+    "basedOnUptimeKuma": "based on",
     "passwordLoginHint": "The password only works until a passkey is set up, e.g. for the first login or after an admin reset your access.",
     "passkeyRequiredMsg": "This account has a passkey. Please log in with your passkey.",
     "passkeyUserVerificationMsg": "The passkey must verify you with a PIN or biometrics.",

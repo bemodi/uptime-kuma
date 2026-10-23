@@ -19,7 +19,7 @@
                 class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-dark text-decoration-none"
             >
                 <object class="bi me-2 ms-4" width="40" height="40" data="/icon.svg" />
-                <span class="fs-4 title">{{ $t("Uptime Kuma") }}</span>
+                <span class="fs-4 title">{{ $root.instanceName }}</span>
             </router-link>
 
             <a
@@ -121,7 +121,7 @@
         <header v-else class="d-flex flex-wrap justify-content-center pt-2 pb-2 mb-3">
             <router-link to="/dashboard" class="d-flex align-items-center text-dark text-decoration-none">
                 <object class="bi" width="40" height="40" data="/icon.svg" />
-                <span class="fs-4 title ms-2">Uptime Kuma</span>
+                <span class="fs-4 title ms-2">{{ $root.instanceName }}</span>
             </router-link>
         </header>
 
@@ -191,6 +191,7 @@ export default {
         // Theme or Mobile
         classes() {
             const classes = {};
+            classes["app-layout"] = true;
             classes[this.$root.theme] = true;
             classes["mobile"] = this.$root.isMobile;
             return classes;

@@ -14,7 +14,7 @@ const path = require("path");
 const axios = require("axios");
 const { isSSL, sslKey, sslCert, sslKeyPassphrase } = require("./config");
 const { getSession, getDisableAuthSession } = require("./better-auth");
-const { LOGGED_IN_ROOM } = require("./util-server");
+const { LOGGED_IN_ROOM, getInstanceName } = require("./util-server");
 const { needsPasskeyEnrollment } = require("./passkey-policy");
 // DO NOT IMPORT HERE IF THE MODULES USED `UptimeKumaServer.getInstance()`, put at the bottom of this file instead.
 
@@ -98,6 +98,13 @@ class UptimeKumaServer {
 
         try {
             this.indexHTML = fs.readFileSync("./dist/index.html").toString();
+
+            // Fork: the page title is the instance name, so link previews and tabs show it before the app loads
+            const instanceName = getInstanceName();
+            if (instanceName) {
+                const escaped = instanceName.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+                this.indexHTML = this.indexHTML.replace("<title>Uptime Kuma</title>", `<title>${escaped}</title>`);
+            }
         } catch (e) {
             // "dist/index.html" is not necessary for development
             if (process.env.NODE_ENV !== "development") {

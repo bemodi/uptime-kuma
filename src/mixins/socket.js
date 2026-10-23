@@ -4,7 +4,7 @@ import Favico from "favico.js";
 import dayjs from "dayjs";
 import mitt from "mitt";
 
-import { DOWN, MAINTENANCE, PENDING, UP } from "../util.ts";
+import { DOWN, MAINTENANCE, PENDING, UP, instanceNameFromHostname } from "../util.ts";
 import { getToastSuccessTimeout, getToastErrorTimeout } from "../util-frontend.js";
 import { logout as betterAuthLogout } from "../auth-client";
 const toast = useToast();
@@ -612,6 +612,15 @@ export default {
     },
 
     computed: {
+        /**
+         * Name of this instance, shown instead of "Uptime Kuma" (fork): set by the server,
+         * otherwise the subdomain the app is reached at
+         * @returns {string} Instance name
+         */
+        instanceName() {
+            return this.info.instanceName || instanceNameFromHostname(location.hostname) || "Uptime Kuma";
+        },
+
         usernameFirstChar() {
             if (typeof this.username == "string" && this.username.length >= 1) {
                 return this.username.charAt(0).toUpperCase();
@@ -734,6 +743,17 @@ export default {
     },
 
     watch: {
+        instanceName: {
+            immediate: true,
+            handler(name) {
+                // Status pages set their own title; keep suffixes such as " - Login"
+                if (!location.pathname.startsWith("/status")) {
+                    const [, ...suffix] = document.title.split(" - ");
+                    document.title = [name, ...suffix].join(" - ");
+                }
+            },
+        },
+
         // Update Badge
         "stats.down"(to, from) {
             if (to !== from) {

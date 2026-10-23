@@ -37,6 +37,20 @@ export const devOriginList = [
 ];
 
 export const appName = "Uptime Kuma";
+
+/**
+ * Name of an instance taken from the hostname it is reached at (fork: no product name,
+ * the instance is called after its subdomain), e.g. "watchtowr" for watchtowr.bemodi.de
+ * @param hostname Hostname without port
+ * @returns First label of the hostname, or null for localhost and IP addresses
+ */
+export function instanceNameFromHostname(hostname: string | null | undefined): string | null {
+    const host = (hostname ?? "").trim().toLowerCase().replace(/\.$/, "");
+    if (!host || host === "localhost" || host.includes(":") || host.startsWith("[") || /^[\d.]+$/.test(host)) {
+        return null;
+    }
+    return host.split(".")[0] || null;
+}
 export const DOWN = 0;
 export const UP = 1;
 export const PENDING = 2;
