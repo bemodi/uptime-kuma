@@ -53,6 +53,32 @@ Every state-changing action of a logged-in user and every login event is recorde
 
 TOTP two-factor authentication still exists from upstream, but it only affects the password step, which is used for first login and recovery.
 
+## Deploy
+
+The image is built from git with `docker/bemodi.dockerfile`. Unlike the upstream `docker/dockerfile`, it builds the frontend itself, so no prebuilt `dist/` is needed.
+
+```bash
+docker build -f docker/bemodi.dockerfile -t uptime-kuma-bemodi .
+docker run -d --name uptime-kuma -p 3001:3001 -v uptime-kuma:/app/data \
+  -e UPTIME_KUMA_PASSKEY_ORIGIN=https://status.example.com uptime-kuma-bemodi
+```
+
+### Coolify
+
+1. **New resource:** pick the repository `bemodi/uptime-kuma`, branch `bemodi`.
+2. **Build pack:** Dockerfile. Set the Dockerfile location to `/docker/bemodi.dockerfile` and the port to `3001`.
+3. **Domain:** use an HTTPS domain, e.g. `https://status.example.com`. Passkeys do not work over plain HTTP or an IP address.
+4. **Environment:** set `UPTIME_KUMA_PASSKEY_ORIGIN` to the same URL as the domain. `UPTIME_KUMA_AUDIT_LOG_KEEP_DAYS` is optional.
+5. **Persistent storage:** add a volume mounted at `/app/data`.
+6. **Deploy.** The first build takes several minutes, because it installs the dependencies twice and builds the frontend.
+
+Expected result: the domain opens the database setup (choose SQLite) and then the admin setup. After creating the admin, you set up the first passkey. Then:
+
+- Switch on **Settings › Reverse Proxy › Trust Proxy**. Coolify runs behind its proxy, and the audit log should show client IPs, not the proxy's.
+- Add the other users under **Settings › Users**.
+
+Every merge into `bemodi` redeploys, if automatic deployment is on.
+
 ## Emergency recovery in the container
 
 ```bash
