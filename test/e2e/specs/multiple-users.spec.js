@@ -13,7 +13,13 @@ async function takeShownPassword(page) {
     await expect(passwordInput).not.toHaveValue("");
     const password = await passwordInput.inputValue();
     const link = await page.getByTestId("first-login-link").locator("input").inputValue();
-    await page.locator(".modal.show").getByRole("button", { name: "Continue" }).click();
+
+    // Bootstrap ignores the click while the dialog is still fading in, so click until it is closed
+    const dialog = page.locator(".modal.show").filter({ hasText: "Password for" });
+    await expect(async () => {
+        await dialog.getByRole("button", { name: "Continue" }).click({ timeout: 1000 });
+        await expect(dialog).toBeHidden({ timeout: 1000 });
+    }).toPass({ timeout: 10000 });
     return { password, link };
 }
 
@@ -104,6 +110,10 @@ test.describe("Multiple users (all admins)", () => {
         await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
         await expect(bobItem).toContainText("Inactive");
 
+        // His page reloads by itself when the server ends his session; wait for that before navigating
+        await expect(
+            bobPage.getByPlaceholder("Username").or(bobPage.getByRole("button", { name: "Log in with passkey" }))
+        ).toBeVisible();
         await bobPage.goto(serverUrl + "/dashboard");
         await bobPage.getByRole("button", { name: "Log in with passkey" }).click();
         await expect(bobPage.locator(".alert.alert-danger")).toBeVisible();
