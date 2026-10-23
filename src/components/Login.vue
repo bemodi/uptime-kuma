@@ -1,7 +1,24 @@
 <template>
     <div class="form-container">
         <div class="form">
-            <form aria-label="Login Form" class="pt-3" @submit.prevent="submit">
+            <div v-if="!showPasswordForm" class="pt-3">
+                <button class="w-100 btn btn-primary" type="button" :disabled="processing" @click="passkeyLogin">
+                    <font-awesome-icon icon="key" class="me-1" />
+                    {{ $t("Log in with passkey") }}
+                </button>
+
+                <button class="btn btn-link mt-3" type="button" @click="showPasswordForm = true">
+                    {{ $t("usePasswordLogin") }}
+                </button>
+
+                <div v-if="res && !res.ok" class="alert alert-danger mt-3" role="alert">
+                    {{ $t(res.msg) }}
+                </div>
+            </div>
+
+            <form v-else aria-label="Login Form" class="pt-3" @submit.prevent="submit">
+                <p class="small text-muted">{{ $t("passwordLoginHint") }}</p>
+
                 <div v-if="!tokenRequired" class="form-floating">
                     <input
                         id="floatingInput"
@@ -64,13 +81,17 @@
                 <div v-if="res && !res.ok" class="alert alert-danger mt-3" role="alert">
                     {{ $t(res.msg) }}
                 </div>
+
+                <button class="btn btn-link mt-2" type="button" @click="showPasswordForm = false">
+                    {{ $t("Log in with passkey") }}
+                </button>
             </form>
         </div>
     </div>
 </template>
 
 <script>
-import { login, verifyTotp } from "../auth-client";
+import { login, loginWithPasskey, verifyTotp } from "../auth-client";
 import HiddenInput from "./HiddenInput.vue";
 
 export default {
@@ -85,6 +106,7 @@ export default {
             token: "",
             res: null,
             tokenRequired: false,
+            showPasswordForm: false,
         };
     },
 
@@ -107,6 +129,22 @@ export default {
     },
 
     methods: {
+        /**
+         * Log in with a passkey of this device or a security key
+         * @returns {Promise<void>}
+         */
+        async passkeyLogin() {
+            this.processing = true;
+            this.res = null;
+            try {
+                await loginWithPasskey();
+            } catch (e) {
+                this.res = { ok: false, msg: e.message };
+            } finally {
+                this.processing = false;
+            }
+        },
+
         /**
          * Submit the user details and attempt to log in
          * @returns {void}

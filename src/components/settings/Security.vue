@@ -14,6 +14,8 @@
                     </button>
                 </p>
 
+                <PasskeyManager />
+
                 <h5 class="my-4 settings-subheading">{{ $t("Change Password") }}</h5>
                 <form class="mb-3" @submit.prevent="savePassword">
                     <div class="mb-3">
@@ -88,11 +90,13 @@
 
 <script>
 import TwoFADialog from "../../components/TwoFADialog.vue";
+import PasskeyManager from "../../components/PasskeyManager.vue";
 import { authClient } from "../../auth-client";
 
 export default {
     components: {
         TwoFADialog,
+        PasskeyManager,
     },
 
     data() {

@@ -45,6 +45,7 @@
         "download-dist": "node extra/download-dist.js",
         "mark-as-nightly": "node extra/mark-as-nightly.js",
         "reset-password": "node --import=tsx extra/reset-password.mts",
+        "reset-passkeys": "node --import=tsx extra/reset-passkeys.mts",
         "remove-2fa": "node extra/remove-2fa.js",
         "start-clear-server": "node extra/start-clear-server.mjs",
         "simple-dns-server": "node extra/simple-dns-server.js",
@@ -67,7 +68,8 @@
         "audit": "npm audit --omit=dev"
     },
     "dependencies": {
-        "@better-auth/api-key": "1.6.11",
+        "@better-auth/api-key": "1.6.33",
+        "@better-auth/passkey": "1.6.33",
         "@grpc/grpc-js": "~1.8.22",
         "@inquirer/core": "~11.2.1",
         "@inquirer/prompts": "~8.5.2",
@@ -77,7 +79,7 @@
         "axios": "~0.33.0",
         "badge-maker": "~3.3.1",
         "bcryptjs": "~2.4.3",
-        "better-auth": "~1.6.11",
+        "better-auth": "~1.6.33",
         "better-sqlite3": "~12.11.1",
         "chardet": "~1.4.0",
         "cheerio": "~1.0.0",

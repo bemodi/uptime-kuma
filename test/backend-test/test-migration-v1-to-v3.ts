@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { io } from "socket.io-client";
 import BetterSqlite3 from "better-sqlite3";
 import bcrypt from "bcryptjs";
+import { SoftAuthenticator, TestBrowser } from "../soft-authenticator";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -101,7 +102,13 @@ test("A v1.23.17 database still works after upgrading to v3 (#7944, #7946)", { t
         const port = await getFreePort();
         child = spawn(process.execPath, ["--import=tsx", "server/server.js"], {
             cwd: path.join(__dirname, "../.."),
-            env: { ...process.env, DATA_DIR: dataDir, UPTIME_KUMA_PORT: String(port), UPTIME_KUMA_DB_TYPE: "sqlite" },
+            env: {
+                ...process.env,
+                DATA_DIR: dataDir,
+                UPTIME_KUMA_PORT: String(port),
+                UPTIME_KUMA_DB_TYPE: "sqlite",
+                UPTIME_KUMA_PASSKEY_ORIGIN: `http://127.0.0.1:${port}`,
+            },
             stdio: ["ignore", "pipe", "pipe"],
         });
         let serverOutput = "";
@@ -112,16 +119,26 @@ test("A v1.23.17 database still works after upgrading to v3 (#7944, #7946)", { t
         await waitForServer(`${baseUrl}/api/entry-page`);
 
         // Log in. The legacy v1 user is migrated to better-auth on the first sign-in.
-        const login = await fetch(`${baseUrl}/api/auth/sign-in/username`, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        });
+        const browser = new TestBrowser(`${baseUrl}/api/auth`, fetch);
+        const login = await browser.req("POST", "/sign-in/username", { username, password });
         assert.strictEqual(login.status, 200, `login failed: ${login.status}\n${serverOutput}`);
-        const cookie = login.headers
-            .getSetCookie()
-            .map((value) => value.split(";")[0])
-            .join("; ");
+
+        // Fork: login requires a passkey. The migrated user has none yet, so the password session
+        // only allows setting one up; the socket serves data once the passkey exists.
+        const held = io(baseUrl, { extraHeaders: { cookie: browser.cookieHeader() }, reconnection: false });
+        const enrollmentUser = await new Promise((resolve) => held.on("passkeyEnrollmentRequired", resolve));
+        assert.strictEqual(enrollmentUser, username);
+        const blocked = await emitAsync(held, "getMonitor", 1);
+        assert.strictEqual(blocked.ok, false, "a session without passkey must not get data");
+        held.close();
+
+        const authenticator = new SoftAuthenticator("127.0.0.1", baseUrl);
+        const options = await browser.req("GET", "/passkey/generate-register-options");
+        const registered = await browser.req("POST", "/passkey/verify-registration", {
+            response: authenticator.create(options.json),
+        });
+        assert.strictEqual(registered.status, 200, `passkey setup failed: ${JSON.stringify(registered.json)}`);
+        const cookie = browser.cookieHeader();
 
         socket = io(baseUrl, { extraHeaders: { cookie }, reconnection: false });
         await new Promise((resolve, reject) => {

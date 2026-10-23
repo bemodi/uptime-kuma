@@ -13,6 +13,7 @@ import { createAuthMiddleware } from "better-auth/api";
 // @ts-ignore
 import * as oldAuth from "./auth.js";
 import { hasUser } from "./routers/better-auth-router";
+import { createPasskeyPlugin, passkeyAfterHook, passkeyBeforeHook } from "./passkey-policy";
 import { symmetricEncrypt } from "better-auth/crypto";
 // @ts-ignore
 import config from "./config.js";
@@ -152,6 +153,9 @@ function createAuthInstance() {
                 },
             }),
 
+            // Login requires a passkey, see passkey-policy.ts
+            createPasskeyPlugin(),
+
             // It is not suitable for "Disable Auth", because it can not turn on/off after init.
             //anonymous(),
         ],
@@ -180,6 +184,11 @@ function createAuthInstance() {
                         await migrateUser(username, password);
                     }
                 }
+
+                await passkeyBeforeHook(ctx);
+            }),
+            after: createAuthMiddleware(async (ctx) => {
+                await passkeyAfterHook(ctx);
             }),
         },
     });

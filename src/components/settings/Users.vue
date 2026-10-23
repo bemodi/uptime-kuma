@@ -1,7 +1,12 @@
 <template>
     <div>
         <div class="add-btn">
-            <button class="btn btn-primary me-2" type="button" data-testid="add-user-button" @click="$refs.userDialog.show()">
+            <button
+                class="btn btn-primary me-2"
+                type="button"
+                data-testid="add-user-button"
+                @click="$refs.userDialog.show()"
+            >
                 <font-awesome-icon icon="plus" />
                 {{ $t("Add User") }}
             </button>
@@ -26,6 +31,13 @@
                         </div>
                         <div v-if="user.name && user.name !== user.username" class="status">{{ user.name }}</div>
                         <div class="status">{{ user.active ? $t("Active") : $t("Inactive") }}</div>
+                        <div class="status" data-testid="user-passkey-count">
+                            {{
+                                user.passkeyCount > 0
+                                    ? $t("passkeyCount", { count: user.passkeyCount })
+                                    : $t("noPasskeyYet")
+                            }}
+                        </div>
                         <div class="date">{{ $t("createdAt", { date: formatDate(user.createdAt) }) }}</div>
                     </div>
                 </div>
@@ -34,7 +46,7 @@
                     <div class="btn-group" role="group">
                         <button class="btn btn-normal" type="button" @click="confirm('reset', user)">
                             <font-awesome-icon icon="key" />
-                            {{ $t("Reset Password") }}
+                            {{ $t("Reset Access") }}
                         </button>
                         <button
                             v-if="user.active"
@@ -59,11 +71,16 @@
             </div>
         </div>
 
-        <Confirm ref="confirmReset" :yes-text="$t('Yes')" :no-text="$t('No')" @yes="resetPassword">
-            {{ $t("resetUserPasswordMsg", { username: selectedUser?.username }) }}
+        <Confirm ref="confirmReset" :yes-text="$t('Yes')" :no-text="$t('No')" @yes="resetAccess">
+            {{ $t("resetUserAccessMsg", { username: selectedUser?.username }) }}
         </Confirm>
 
-        <Confirm ref="confirmDeactivate" :yes-text="$t('Yes')" :no-text="$t('No')" @yes="setActive(selectedUser, false)">
+        <Confirm
+            ref="confirmDeactivate"
+            :yes-text="$t('Yes')"
+            :no-text="$t('No')"
+            @yes="setActive(selectedUser, false)"
+        >
             {{ $t("deactivateUserMsg", { username: selectedUser?.username }) }}
         </Confirm>
 
@@ -128,14 +145,16 @@ export default {
         },
 
         /**
-         * Set a new generated password and show it once
+         * Remove the user's passkeys, set a new generated password and show it once.
+         * The user logs in with it and sets up a new passkey.
          * @returns {void}
          */
-        resetPassword() {
+        resetAccess() {
             const user = this.selectedUser;
-            this.$root.getSocket().emit("resetUserPassword", user.id, (res) => {
+            this.$root.getSocket().emit("resetUserAccess", user.id, (res) => {
                 if (res.ok) {
                     this.$refs.userDialog.showPassword(user.username, res.password);
+                    this.loadUsers();
                 } else {
                     this.$root.toastRes(res);
                 }
@@ -222,6 +241,7 @@ export default {
         align-items: center;
 
         .circle {
+            flex-shrink: 0;
             width: 25px;
             height: 25px;
             border-radius: 50rem;
@@ -243,6 +263,10 @@ export default {
         display: flex;
         gap: 8px;
         flex-direction: row-reverse;
+
+        .btn {
+            white-space: nowrap;
+        }
     }
 }
 
