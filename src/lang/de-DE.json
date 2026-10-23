@@ -1412,6 +1412,7 @@
     "Log in with passkey": "Mit Passkey anmelden",
     "usePasswordLogin": "Erste Anmeldung oder Zugang zurückgesetzt? Mit Passwort anmelden",
     "backToPasskeyLogin": "Zurück zur Passkey-Anmeldung",
+    "basedOnUptimeKuma": "basiert auf",
     "passwordLoginHint": "Das Passwort funktioniert nur, bis ein Passkey eingerichtet ist, also bei der ersten Anmeldung oder nachdem ein Admin deinen Zugang zurückgesetzt hat.",
     "passkeyRequiredMsg": "Dieses Konto hat einen Passkey. Bitte melde dich mit deinem Passkey an.",
     "passkeyUserVerificationMsg": "Der Passkey muss dich per PIN oder Biometrie bestätigen.",

@@ -12,9 +12,9 @@ export default {
     },
 
     mounted() {
-        // Default Light
+        // Default Light (fork: the light glass theme is the default, dark stays selectable)
         if (!this.userTheme) {
-            this.userTheme = "auto";
+            this.userTheme = "light";
         }
 
         // Default Heartbeat Bar

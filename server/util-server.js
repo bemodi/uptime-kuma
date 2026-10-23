@@ -9,6 +9,7 @@ const {
     PING_GLOBAL_TIMEOUT_DEFAULT,
     PING_COUNT_DEFAULT,
     PING_PER_REQUEST_TIMEOUT_DEFAULT,
+    instanceNameFromHostname,
 } = require("../src/util");
 const iconv = require("iconv-lite");
 const chardet = require("chardet");
@@ -558,6 +559,23 @@ exports.checkStatusCode = function (status, acceptedCodes) {
     }
 
     return false;
+};
+
+/**
+ * Name shown instead of "Uptime Kuma" (fork): UPTIME_KUMA_INSTANCE_NAME, otherwise the subdomain
+ * of UPTIME_KUMA_PASSKEY_ORIGIN. Without either, the browser uses the hostname it is on.
+ * @returns {string|null} Instance name, or null if not configured
+ */
+exports.getInstanceName = () => {
+    const configured = process.env.UPTIME_KUMA_INSTANCE_NAME?.trim();
+    if (configured) {
+        return configured.slice(0, 50);
+    }
+    try {
+        return instanceNameFromHostname(new URL(process.env.UPTIME_KUMA_PASSKEY_ORIGIN).hostname);
+    } catch (_) {
+        return null;
+    }
 };
 
 /**

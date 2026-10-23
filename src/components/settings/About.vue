@@ -2,7 +2,12 @@
     <div class="d-flex justify-content-center align-items-center">
         <div class="logo d-flex flex-column justify-content-center align-items-center">
             <object class="my-4" width="200" height="200" data="/icon.svg" />
-            <div class="fs-4 fw-bold">Uptime Kuma</div>
+            <div class="fs-4 fw-bold">{{ $root.instanceName }}</div>
+            <div class="based-on">
+                {{ $t("basedOnUptimeKuma") }}
+                <a href="https://github.com/louislam/uptime-kuma" target="_blank" rel="noopener">Uptime Kuma</a>
+                (MIT, © Louis Lam)
+            </div>
             <div>{{ $t("versionIs", { version: $root.info.version }) }}</div>
             <div class="frontend-version">{{ $t("frontendVersionIs", { version: $root.frontendVersion }) }}</div>
 
@@ -71,6 +76,12 @@ export default {
 
 .update-link {
     font-size: 0.8em;
+}
+
+.based-on {
+    font-size: 13px;
+    margin-bottom: 8px;
+    opacity: 0.7;
 }
 
 .frontend-version {

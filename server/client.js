@@ -6,7 +6,7 @@ const { R } = require("redbean-node");
 const { UptimeKumaServer } = require("./uptime-kuma-server");
 const server = UptimeKumaServer.getInstance();
 const io = server.io;
-const { setting, LOGGED_IN_ROOM } = require("./util-server");
+const { setting, LOGGED_IN_ROOM, getInstanceName } = require("./util-server");
 const checkVersion = require("./check-version");
 const Database = require("./database");
 
@@ -144,6 +144,7 @@ async function sendAPIKeyList(socket) {
  */
 async function sendInfo(socket, hideVersion = false) {
     const info = {
+        instanceName: getInstanceName(),
         primaryBaseURL: await setting("primaryBaseURL"),
         serverTimezone: await server.getTimezone(),
         serverTimezoneOffset: server.getTimezoneOffset(),
