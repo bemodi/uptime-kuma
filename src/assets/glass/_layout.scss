@@ -266,6 +266,8 @@ body.light:has(.app-layout) {
     // Number tiles: quick stats on the dashboard, statistics on the monitor page
     .shadow-box:not(.stats):has(> .row > .col > .num),
     .shadow-box.stats {
+        // Container for the column count below
+        container-type: inline-size;
         background: none;
         border: 0;
         box-shadow: none;
@@ -274,12 +276,15 @@ body.light:has(.app-layout) {
 
         > .row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px;
             margin: 0;
 
             > [class*="col"] {
                 @include glass(0.62);
+                // The number scales with the tile width (cqi below), so it never runs over the edge
+                container-type: inline-size;
+                min-width: 0;
                 width: auto;
                 margin: 0 !important;
                 padding: 18px 20px;
@@ -288,10 +293,15 @@ body.light:has(.app-layout) {
         }
 
         h3,
+        h4,
+        p {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        h3,
         h4 {
-            display: flex;
-            align-items: center;
-            gap: 8px;
             margin: 0 0 4px;
             padding: 0;
             font-size: 15px;
@@ -309,17 +319,45 @@ body.light:has(.app-layout) {
         .num {
             display: block;
             padding: 0;
-            font-size: 34px;
+            font-size: clamp(20px, 21cqi, 34px);
             font-weight: 700;
             letter-spacing: -0.03em;
             line-height: 1.1;
+            white-space: nowrap;
             font-variant-numeric: tabular-nums;
+
+            // Clickable numbers (chart, certificate chain) without the heavy underline
+            a {
+                color: inherit;
+                text-decoration: none;
+
+                &:hover {
+                    color: $blue;
+                }
+            }
         }
     }
 
-    .shadow-box.stats .num {
-        font-size: 24px;
-        white-space: nowrap;
+    // Columns by tile count: one row when every tile gets 140 px, else two equally full rows,
+    // else two columns (phones). Tile count n -> columns for two rows.
+    @each $n, $half in (4: 2, 5: 3, 6: 3, 7: 4, 8: 4) {
+        @container (min-width: #{$half * 140 + ($half - 1) * 16}px) {
+            .shadow-box:not(.stats):has(> .row > .col > .num),
+            .shadow-box.stats {
+                > .row:has(> :nth-child(#{$n}):last-child) {
+                    grid-template-columns: repeat($half, minmax(0, 1fr));
+                }
+            }
+        }
+
+        @container (min-width: #{$n * 140 + ($n - 1) * 16}px) {
+            .shadow-box:not(.stats):has(> .row > .col > .num),
+            .shadow-box.stats {
+                > .row:has(> :nth-child(#{$n}):last-child) {
+                    grid-template-columns: repeat($n, minmax(0, 1fr));
+                }
+            }
+        }
     }
 
     // Status dot before each quick stats label
@@ -327,8 +365,11 @@ body.light:has(.app-layout) {
         @each $i, $colour in (1: $green, 2: $red, 3: $purple, 4: $grey, 5: $grey) {
             &:nth-child(#{$i}) h3::before {
                 content: "";
+                display: inline-block;
                 width: 10px;
                 height: 10px;
+                margin-right: 8px;
+                vertical-align: 1px;
                 border-radius: 50%;
                 background-color: $colour;
                 box-shadow: 0 0 0 3px rgba($colour, 0.2);
@@ -337,6 +378,49 @@ body.light:has(.app-layout) {
     }
 
     // ---------------------------------------------------------------- monitor page
+    // Heartbeat bar and status: the bar takes the width up to a calm status pill on the right
+    .shadow-box > .row:has([data-testid="monitor-status"]) {
+        align-items: center;
+    }
+
+    &:not(.mobile) .shadow-box > .row:has([data-testid="monitor-status"]) {
+        flex-wrap: nowrap;
+
+        > .col-md-8 {
+            flex: 1 1 auto;
+            width: auto;
+            min-width: 0;
+        }
+
+        > .col-md-4 {
+            flex: 0 0 auto;
+            width: auto;
+            text-align: right !important;
+        }
+    }
+
+    // No empty tag line between title and URL
+    .tags:empty {
+        margin-bottom: 0;
+    }
+
+    [data-testid="monitor-status"] {
+        padding: 10px 22px;
+        font-size: 20px !important;
+        letter-spacing: -0.01em;
+    }
+
+    // Chart period: a glass pill like the other controls
+    .period-options .btn-period-toggle {
+        @include glass(0.75);
+        min-height: 34px;
+        padding: 0 14px;
+        border-radius: 999px;
+        color: $text;
+        font-size: 13px;
+        opacity: 1;
+    }
+
     .monitor-id {
         align-items: center;
         padding: 2px 10px;
