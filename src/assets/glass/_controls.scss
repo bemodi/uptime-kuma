@@ -1,0 +1,374 @@
+// Light glass theme: buttons, settings menu, forms, tables, overlays, toasts.
+
+.app-layout.light {
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        border-radius: 999px;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        transition:
+            filter 0.15s,
+            background-color 0.15s,
+            color 0.15s,
+            box-shadow 0.15s;
+    }
+
+    .btn-link {
+        font-weight: 500;
+        text-underline-offset: 3px;
+    }
+
+    .btn-sm,
+    .btn-group-sm > .btn {
+        min-height: 34px;
+        padding: 0 14px;
+        font-size: 13px;
+    }
+
+    .btn-primary {
+        background-color: $blue;
+        border-color: $blue;
+        color: #fff;
+        box-shadow: 0 6px 18px rgba($blue, 0.3);
+
+        &:hover,
+        &:focus,
+        &:active,
+        &.active {
+            background-color: $blue;
+            border-color: $blue;
+            color: #fff;
+            filter: brightness(1.08);
+        }
+    }
+
+    .btn-normal,
+    .btn-outline-normal,
+    .btn-secondary,
+    .btn-outline-secondary {
+        @include glass(0.75);
+        color: $text;
+
+        &:hover,
+        &:active,
+        &.active {
+            background-color: #fff;
+            border-color: #fff;
+            color: $text;
+        }
+    }
+
+    // Tinted instead of outlined
+    @each $name, $colour in (primary: $blue, danger: $red, success: $green, warning: $orange) {
+        .btn-outline-#{$name} {
+            background-color: rgba($colour, 0.12);
+            border-color: transparent;
+            color: $colour;
+
+            &:hover,
+            &:active,
+            &.active {
+                background-color: $colour;
+                border-color: $colour;
+                color: #fff;
+            }
+        }
+
+        .btn-check:checked + .btn-outline-#{$name} {
+            background-color: $colour;
+            border-color: $colour;
+            color: #fff;
+        }
+    }
+
+    .btn-danger {
+        background-color: $red;
+        border-color: $red;
+        box-shadow: 0 6px 18px rgba($red, 0.25);
+    }
+
+    .btn-success {
+        background-color: $green;
+        border-color: $green;
+    }
+
+    // Button groups become a segmented track
+    .btn-group {
+        @include track;
+
+        > .btn {
+            min-height: 40px;
+            border-radius: 999px !important;
+            border: 0;
+            margin: 0 !important;
+            box-shadow: none;
+            background-color: transparent;
+            color: $text;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.6);
+            }
+
+            &.active {
+                @include pill-selected;
+            }
+
+            &.btn-primary {
+                background-color: $blue;
+                color: #fff;
+            }
+
+            &.text-danger:hover {
+                background-color: rgba($red, 0.12);
+            }
+        }
+
+        > .btn-check:checked + .btn {
+            @include pill-selected;
+        }
+    }
+
+    // ---------------------------------------------------------------- settings
+    .shadow-box-settings {
+        padding: 12px;
+
+        .settings-menu .menu-item {
+            display: flex;
+            align-items: center;
+            min-height: 44px;
+            margin: 2px 0;
+            border-left: 0;
+            border-radius: 12px;
+            font-weight: 500;
+            color: $text;
+        }
+
+        .settings-menu .menu-item:hover {
+            background: rgba(255, 255, 255, 0.55);
+        }
+
+        .settings-menu .active .menu-item {
+            @include pill-selected;
+            border-left: 0;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        // Upstream pulls the header over the box padding; keep it inside the glass edge.
+        // .settings-content for specificity: the build adds [dir=ltr] to upstream's margin-right
+        .settings-content .settings-content-header {
+            width: auto;
+            margin: 0 0 12px;
+            padding: 10px 16px 14px;
+            border-radius: 0;
+            background: transparent;
+            border-bottom-color: $hairline;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+    }
+
+    // ---------------------------------------------------------------- forms
+    .form-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: $text;
+    }
+
+    .form-control,
+    .form-select {
+        min-height: 44px;
+        border-color: rgba(60, 60, 67, 0.14);
+        border-radius: 12px;
+        background-color: rgba(255, 255, 255, 0.78);
+        font-size: 15px;
+
+        &:focus {
+            background-color: #fff;
+            border-color: rgba($blue, 0.6);
+            box-shadow: 0 0 0 4px rgba($blue, 0.18);
+        }
+    }
+
+    .search-input {
+        border-radius: 999px;
+    }
+
+    // Input groups: one shape, the button takes the input's corners
+    .input-group > .btn:last-child {
+        border-radius: 0 12px 12px 0;
+    }
+
+    // Status and tag filters in the monitor list
+    .filter-dropdown-status {
+        @include glass(0.75);
+        min-height: 40px;
+        padding: 0 10px;
+        border-radius: 999px;
+        color: $text;
+        font-size: 15px;
+        font-weight: 600;
+
+        &:focus,
+        &:hover {
+            background-color: #fff;
+        }
+
+        &.active {
+            background-color: rgba($blue, 0.12);
+            border-color: transparent;
+            color: $blue;
+        }
+    }
+
+    .filter-dropdown-menu {
+        @include glass(0.98);
+        padding: 6px !important;
+        border-radius: 18px;
+        transform: translate(0, 46px);
+
+        .dropdown-item {
+            border-radius: 10px;
+        }
+    }
+
+    textarea.form-control {
+        min-height: 88px;
+    }
+
+    .form-check-input:checked {
+        background-color: $blue;
+        border-color: $blue;
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 4px rgba($blue, 0.18);
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: $green;
+        border-color: $green;
+    }
+
+    .form-text,
+    .text-muted {
+        color: $text-secondary !important;
+    }
+
+    // ---------------------------------------------------------------- tables, lists, overlays
+    .table a:not(.btn) {
+        color: $text;
+        font-weight: 600;
+        text-decoration: none;
+
+        &:hover {
+            color: $blue;
+        }
+    }
+
+    .table {
+        --bs-table-bg: transparent;
+        --bs-table-striped-bg: rgba(255, 255, 255, 0.35);
+        --bs-table-hover-bg: rgba(255, 255, 255, 0.5);
+
+        th {
+            font-size: 13px;
+            font-weight: 600;
+            color: $text-secondary;
+            border-bottom: 1px solid $hairline;
+        }
+
+        td {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            border-color: $hairline;
+        }
+    }
+
+    .list-group-item {
+        background-color: rgba(255, 255, 255, 0.5);
+        border-color: $hairline;
+    }
+
+    .modal-content {
+        @include glass(0.92);
+        border-radius: $radius;
+    }
+
+    .modal-header,
+    .modal-footer {
+        border-color: $hairline;
+    }
+
+    // Nearly opaque so text below does not show through the menu
+    .dropdown-menu {
+        @include glass(0.98);
+        padding: 6px;
+        border-radius: 18px;
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 10px;
+        }
+
+        .dropdown-item.active,
+        .dropdown-item:active {
+            background-color: $blue;
+            color: #fff;
+        }
+    }
+
+    .prism-editor-wrapper,
+    pre {
+        background-color: rgba(255, 255, 255, 0.55);
+        border-radius: 14px;
+    }
+
+    // Login and passkey setup: a blurred glass card on the underlay
+    .form-container .form {
+        @include glass(0.6, true);
+        padding: 32px 28px 24px;
+        margin-top: 32px;
+        border-radius: 26px;
+    }
+}
+
+// Toasts are rendered outside the layout: frosted cards with the status colour as accent
+body.light:has(.app-layout) .Vue-Toastification__toast {
+    background-color: rgba(255, 255, 255, 0.86);
+    // Standard property last: the minifier keeps only one of the two, Chromium needs this one
+    -webkit-backdrop-filter: $blur;
+    backdrop-filter: $blur;
+    color: $text;
+    font-family: $font;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-left: 5px solid $blue;
+    border-radius: 16px;
+    box-shadow: $edge, $shadow;
+
+    .Vue-Toastification__close-button {
+        color: $text;
+    }
+
+    .Vue-Toastification__progress-bar {
+        background-color: rgba(0, 0, 0, 0.12);
+    }
+
+    @each $type, $colour in (success: $green, error: $red, warning: $orange, info: $blue) {
+        &.Vue-Toastification__toast--#{$type} {
+            border-left-color: $colour;
+
+            .Vue-Toastification__icon {
+                color: $colour;
+            }
+        }
+    }
+}

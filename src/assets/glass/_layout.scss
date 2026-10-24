@@ -1,0 +1,443 @@
+// Light glass theme: underlay, header, grid, panels, number tiles, mobile frame.
+
+// The underlay also covers the page edges when scrolling past the end
+body.light:has(.app-layout) {
+    background-color: #eef3fb;
+}
+
+.app-layout.light {
+    min-height: 100vh;
+    padding: $page-top $gutter 0;
+    color: $text;
+    font-family: $font;
+    -webkit-font-smoothing: antialiased;
+    background-color: #eef3fb;
+    background-image:
+        radial-gradient(60rem 40rem at 0% 0%, rgba($blue, 0.24), transparent 60%),
+        radial-gradient(50rem 40rem at 100% 10%, rgba($green, 0.2), transparent 60%),
+        radial-gradient(60rem 45rem at 70% 100%, rgba($purple, 0.18), transparent 60%),
+        radial-gradient(40rem 30rem at 10% 90%, rgba($orange, 0.12), transparent 60%);
+    background-attachment: fixed;
+
+    // ---------------------------------------------------------------- typography
+    h1 {
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        margin-bottom: 20px !important;
+    }
+
+    h2,
+    h3,
+    h4,
+    h5 {
+        letter-spacing: -0.015em;
+    }
+
+    // Section titles in forms (monitor, maintenance, status page)
+    .shadow-box h2 {
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    a:focus,
+    button:focus {
+        outline: none;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    .btn:focus-visible,
+    .nav-link:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba($blue, 0.35) !important;
+    }
+
+    // ---------------------------------------------------------------- header: floating glass bar
+    // No blur: nothing scrolls under it, and the profile dropdown hangs out of it
+    > header {
+        @include glass(0.62);
+        align-items: center;
+        min-height: $header-height;
+        margin-bottom: $gutter !important;
+        padding: 9px 9px 9px 16px !important;
+        border: 1px solid rgba(255, 255, 255, 0.7) !important;
+        border-radius: $radius;
+
+        > a:first-child {
+            margin: 0 auto 0 0 !important;
+        }
+
+        .bi {
+            width: 36px;
+            height: 36px;
+            margin: 0 12px 0 0 !important;
+        }
+
+        .title {
+            font-size: 22px !important;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: $text;
+        }
+
+        > .btn {
+            margin-right: 12px !important;
+        }
+
+        .nav {
+            @include track;
+            margin: 0;
+
+            // Logged out: no items, no empty track
+            &:not(:has(> .nav-item)) {
+                display: none;
+            }
+        }
+
+        .nav-item {
+            margin: 0 !important;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 42px;
+            padding: 0 18px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: $text-secondary;
+            background: transparent;
+            transition:
+                background-color 0.15s,
+                color 0.15s,
+                box-shadow 0.15s;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.5);
+                color: $text;
+            }
+
+            &.active {
+                @include pill-selected;
+            }
+        }
+
+        .dropdown-profile-pic .nav-link {
+            padding: 0 14px 0 6px;
+            color: $text;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        .profile-pic {
+            width: 30px;
+            height: 30px;
+            margin-right: 2px;
+            font-size: 13px;
+            background: linear-gradient(135deg, $blue, $purple);
+        }
+
+        .dropdown-menu {
+            min-width: 240px;
+            margin-top: 12px !important;
+        }
+    }
+
+    // ---------------------------------------------------------------- one grid
+    main {
+        min-height: 0;
+    }
+
+    // Dashboard.vue sets width: 98 %, which moves the columns off the header edges
+    main > .container-fluid {
+        width: auto;
+        padding: 0;
+
+        > .row {
+            margin: 0;
+        }
+    }
+
+    &:not(.mobile) main > .container-fluid > .row {
+        display: grid;
+        grid-template-columns: $sidebar minmax(0, 1fr);
+        gap: $gutter;
+        margin: 0;
+
+        > [class*="col-"] {
+            width: auto;
+            max-width: none;
+            padding: 0 !important;
+            margin: 0 0 $gutter !important;
+        }
+
+        // Sidebar: full-width primary action above the list
+        > [class*="col-"]:first-child > div > .btn-primary {
+            display: flex;
+            width: 100%;
+            height: $add-button;
+            margin-bottom: 16px !important;
+            font-size: 16px;
+        }
+    }
+
+    // ---------------------------------------------------------------- panels
+    .shadow-box {
+        @include glass(0.62);
+        border-radius: $radius;
+
+        &.big-padding {
+            padding: 24px;
+        }
+    }
+
+    // Monitor list: more translucent, sticky, fills the viewport down to the page margin.
+    // MonitorList.vue sets --scroll-top while the header scrolls out of view.
+    .shadow-box:has(> .monitor-list) {
+        @include glass(0.45);
+        top: $page-top;
+        padding: 0 !important;
+        overflow: hidden;
+    }
+
+    &:not(.mobile) .shadow-box:has(> .monitor-list) {
+        $list-top: $page-top + $header-height + $gutter + $add-button + 16px;
+        height: calc(100vh - #{$list-top + $gutter} + min(var(--scroll-top, 0px), #{$list-top - $page-top})) !important;
+        margin-bottom: 0 !important;
+    }
+
+    // Sticky save bar at the bottom of long forms
+    .fixed-bottom-bar {
+        background-color: rgba(255, 255, 255, 0.72);
+        border-top: 1px solid $hairline;
+        border-radius: 0 0 $radius $radius;
+        // Standard property last: the minifier keeps only one of the two, Chromium needs this one
+        -webkit-backdrop-filter: $blur;
+        backdrop-filter: $blur;
+    }
+
+    .list-header {
+        border-bottom: 1px solid $hairline;
+        border-radius: 0;
+        padding: 12px;
+        margin-bottom: 6px;
+    }
+
+    .monitor-list {
+        padding: 0 8px 8px !important;
+
+        .item {
+            min-height: 52px;
+            margin: 2px 0;
+            border-radius: 14px;
+            color: $text;
+            transition: background-color 0.15s;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.5);
+            }
+
+            &.active {
+                @include pill-selected;
+            }
+        }
+
+        .info {
+            font-weight: 500;
+        }
+    }
+
+    .badge {
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        border-radius: 999px;
+    }
+
+    .bg-primary {
+        background-color: $green !important;
+    }
+
+    // Number tiles: quick stats on the dashboard, statistics on the monitor page
+    .shadow-box:not(.stats):has(> .row > .col > .num),
+    .shadow-box.stats {
+        background: none;
+        border: 0;
+        box-shadow: none;
+        padding: 0 !important;
+        text-align: left !important;
+
+        > .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin: 0;
+
+            > [class*="col"] {
+                @include glass(0.62);
+                width: auto;
+                margin: 0 !important;
+                padding: 18px 20px;
+                border-radius: 20px;
+            }
+        }
+
+        h3,
+        h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 4px;
+            padding: 0;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: $text-secondary;
+        }
+
+        p {
+            padding: 0;
+            margin: 0 0 8px !important;
+            font-size: 13px;
+        }
+
+        .num {
+            display: block;
+            padding: 0;
+            font-size: 34px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+    }
+
+    .shadow-box.stats .num {
+        font-size: 26px;
+    }
+
+    // Status dot before each quick stats label
+    .shadow-box:not(.stats):has(> .row > .col > .num) > .row > .col {
+        @each $i, $colour in (1: $green, 2: $red, 3: $purple, 4: $grey, 5: $grey) {
+            &:nth-child(#{$i}) h3::before {
+                content: "";
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: $colour;
+                box-shadow: 0 0 0 3px rgba($colour, 0.2);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------- monitor page
+    .monitor-id {
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 999px;
+        background-color: $track;
+        color: $text-secondary;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0;
+        vertical-align: middle;
+    }
+
+    .url {
+        color: $text;
+        font-weight: 500;
+
+        a {
+            color: $blue;
+        }
+    }
+
+    .keyword {
+        color: $text;
+    }
+
+    .word {
+        color: $text-secondary;
+    }
+
+    // ---------------------------------------------------------------- mobile
+    &.mobile {
+        padding: 12px 12px 0;
+
+        > header {
+            justify-content: center;
+            min-height: 56px;
+            padding: 8px 12px !important;
+            margin-bottom: 16px !important;
+
+            .bi {
+                width: 32px;
+                height: 32px;
+                margin: 0 !important;
+            }
+
+            .title {
+                font-size: 20px !important;
+            }
+        }
+
+        // Room for the floating tab bar
+        main {
+            padding-bottom: 40px;
+        }
+
+        // The list ends 12 px above the tab bar
+        .shadow-box:has(> .monitor-list) {
+            height: calc(100vh - 173px - env(safe-area-inset-bottom)) !important;
+        }
+
+        // Statistics: label, period and number stacked like the quick stats
+        .shadow-box.stats > .row > [class*="col"] {
+            display: block !important;
+
+            > * {
+                width: auto;
+                padding: 0;
+            }
+        }
+
+        .bottom-nav {
+            @include glass(0.72, true);
+            display: flex;
+            align-items: center;
+            left: 12px;
+            right: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom));
+            width: auto;
+            height: 64px;
+            padding: 0 6px;
+            border-radius: 26px;
+
+            a {
+                flex: 1;
+                height: 52px;
+                padding: 7px 4px 0;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                color: $text-secondary;
+
+                div {
+                    font-size: 19px;
+                    line-height: 1.2;
+                }
+            }
+
+            a.router-link-exact-active,
+            a.active {
+                @include pill-selected;
+                color: $blue;
+            }
+        }
+    }
+}
