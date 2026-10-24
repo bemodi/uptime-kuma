@@ -51,6 +51,7 @@ const { demoMode } = require("../config");
 const version = require("../../package.json").version;
 const apicache = require("../modules/apicache");
 const { UptimeKumaServer } = require("../uptime-kuma-server");
+const hostingInfo = require("../hosting-info");
 const { DockerHost } = require("../docker");
 const crypto = require("crypto");
 const { UptimeCalculator } = require("../uptime-calculator");
@@ -653,6 +654,7 @@ class Monitor extends BeanModel {
 
                     // Make Request
                     let res = await this.makeAxiosRequest(options);
+                    this.refreshHostingInfo(res.headers);
 
                     bean.msg = `${res.status} - ${res.statusText}`;
                     bean.ping = dayjs().valueOf() - startTime;
@@ -918,6 +920,9 @@ class Monitor extends BeanModel {
 
                 retries = 0;
             } catch (error) {
+                // Fork: also show where a site is hosted while it is down
+                this.refreshHostingInfo(error?.response?.headers);
+
                 if (error?.name === "CanceledError") {
                     bean.msg = `timeout by AbortSignal (${this.timeout}s)`;
                 } else {
@@ -1344,6 +1349,9 @@ class Monitor extends BeanModel {
 
             // Send Cert Info
             await Monitor.sendCertInfo(io, monitorID, userID);
+
+            // Fork: send hosting info
+            await hostingInfo.sendHostingInfo(io, monitorID);
 
             // Send domain info
             await Monitor.sendDomainInfo(io, monitorID, userID);
@@ -2085,6 +2093,17 @@ class Monitor extends BeanModel {
             log.debug("monitor", `[${this.name}] call checkCertExpiryNotifications`);
             await checkCertExpiryNotifications(this, tlsInfo);
         }
+    }
+
+    /**
+     * Fork: look up where the monitored website is hosted, at most once an hour, without delaying the check
+     * @param {object|undefined} headers Response headers of the check, if any
+     * @returns {void}
+     */
+    refreshHostingInfo(headers) {
+        hostingInfo.refreshHostingInfo(this, headers, UptimeKumaServer.getInstance().io).catch((e) => {
+            log.debug("monitor", `[${this.name}] Hosting lookup failed: ${e.message}`);
+        });
     }
 }
 

@@ -46,6 +46,7 @@ export default {
             uptimeList: {},
             tlsInfoList: {},
             domainInfoList: {},
+            hostingInfoList: {},
             notificationList: [],
             dockerHostList: [],
             remoteBrowserList: [],
@@ -245,6 +246,11 @@ export default {
 
             socket.on("certInfo", (monitorID, data) => {
                 this.tlsInfoList[monitorID] = JSON.parse(data);
+            });
+
+            // Fork: where a monitored site is hosted
+            socket.on("hostingInfo", (monitorID, data) => {
+                this.hostingInfoList[monitorID] = JSON.parse(data);
             });
 
             socket.on("domainInfo", (monitorID, daysRemaining, expiresOn) => {

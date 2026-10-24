@@ -115,6 +115,9 @@
                 </span>
             </p>
 
+            <!-- Fork: where the site is hosted and who issued its certificate -->
+            <MonitorHostingInfo :monitor-id="monitor.id" @toggle-cert="toggleCertInfoBox = !toggleCertInfoBox" />
+
             <div class="functions">
                 <div class="btn-group" role="group">
                     <button v-if="monitor.active" class="btn btn-normal" @click="pauseDialog">
@@ -450,6 +453,7 @@ import Pagination from "v-pagination-3";
 const PingChart = defineAsyncComponent(() => import("../components/PingChart.vue"));
 import Tag from "../components/Tag.vue";
 import CertificateInfo from "../components/CertificateInfo.vue";
+import MonitorHostingInfo from "../components/MonitorHostingInfo.vue";
 import { getMonitorRelativeURL } from "../util.ts";
 import { URL } from "whatwg-url";
 import DOMPurify from "dompurify";
@@ -475,6 +479,7 @@ export default {
         PingChart,
         Tag,
         CertificateInfo,
+        MonitorHostingInfo,
         PrismEditor,
         ScreenshotDialog,
     },
