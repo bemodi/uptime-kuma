@@ -318,7 +318,8 @@ body.light:has(.app-layout) {
     }
 
     .shadow-box.stats .num {
-        font-size: 26px;
+        font-size: 24px;
+        white-space: nowrap;
     }
 
     // Status dot before each quick stats label
@@ -359,6 +360,21 @@ body.light:has(.app-layout) {
 
     .keyword {
         color: $text;
+    }
+
+    // Hosting and certificate issuer under the URL
+    .info-chip {
+        @include glass(0.7);
+        min-height: 34px;
+
+        .tag {
+            background-color: rgba($blue, 0.14);
+            color: $blue;
+        }
+    }
+
+    button.info-chip:hover {
+        background-color: #fff;
     }
 
     .word {
