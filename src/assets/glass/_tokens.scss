@@ -1,0 +1,68 @@
+// Tokens and mixins of the light glass theme, see ../glass.scss.
+
+$blue: #0a84ff;
+$green: #30d158;
+$orange: #ff9f0a;
+$purple: #bf5af2;
+$red: #ff453a;
+$grey: #8e8e93;
+$text: #1d1d1f;
+$text-secondary: #6e6e73;
+$hairline: rgba(60, 60, 67, 0.12);
+$track: rgba(118, 118, 128, 0.12);
+$edge: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+$shadow:
+    0 1px 2px rgba(28, 39, 76, 0.04),
+    0 12px 32px rgba(28, 39, 76, 0.08);
+$pill-shadow:
+    $edge,
+    0 1px 3px rgba(28, 39, 76, 0.14);
+$blur: blur(50px) saturate(200%);
+$gutter: 24px;
+$page-top: 16px;
+$header-height: 68px;
+$sidebar: 360px;
+$add-button: 48px;
+$radius: 22px;
+// -apple-system first: Safari ignores BlinkMacSystemFont and would fall back to Helvetica
+$font:
+    "Twemoji Country Flags",
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "Segoe UI Variable Text",
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji";
+
+@mixin glass($opacity, $with-blur: false) {
+    background-color: rgba(255, 255, 255, $opacity);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: $edge, $shadow;
+
+    @if $with-blur {
+        // Standard property last: the minifier keeps only one of the two, Chromium needs this one
+        -webkit-backdrop-filter: $blur;
+        backdrop-filter: $blur;
+    }
+}
+
+// Track with a white pill for the selected item (iOS segmented control)
+@mixin track {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background-color: $track;
+}
+
+@mixin pill-selected {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: $text;
+    box-shadow: $pill-shadow;
+}

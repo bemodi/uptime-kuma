@@ -75,6 +75,24 @@ test.describe("Login page", () => {
         expect(await panel.evaluate((el) => getComputedStyle(el).backdropFilter)).toBe("none");
     });
 
+    // One grid: the floating header, the sidebar and the content share the same outer edges
+    test("header and dashboard columns share the page edges in light mode", async ({ page }) => {
+        await page.emulateMedia({ colorScheme: "light" });
+        await page.setViewportSize({ width: 1440, height: 900 });
+        await page.goto("./dashboard");
+        await login(page);
+        await expect(page.locator(".monitor-list")).toBeVisible();
+        const header = await page.locator(".app-layout > header").boundingBox();
+        const sidebar = await page.locator("main > .container-fluid > .row > div").first().boundingBox();
+        const content = await page.locator("main > .container-fluid > .row > div").nth(1).boundingBox();
+        expect(Math.round(sidebar.x)).toBe(Math.round(header.x));
+        expect(Math.round(content.x + content.width)).toBe(Math.round(header.x + header.width));
+
+        // Safari ignores BlinkMacSystemFont, so the system font has to come first
+        const font = await page.getByText("Add New Monitor").evaluate((el) => getComputedStyle(el).fontFamily);
+        expect(font).toContain("-apple-system");
+    });
+
     test("?login=password opens the password form directly", async ({ page }) => {
         await page.goto("./dashboard?login=password");
         await expect(page.getByPlaceholder("Username")).toBeVisible();

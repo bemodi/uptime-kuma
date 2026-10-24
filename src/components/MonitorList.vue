@@ -154,6 +154,7 @@ export default {
             disableSelectAllWatcher: false,
             selectedMonitors: {},
             windowTop: 0,
+            scrollTop: 0,
             bulkActionInProgress: false,
             filterState: {
                 status: null,
@@ -174,6 +175,8 @@ export default {
             if (window.innerWidth > 550) {
                 return {
                     height: `calc(100vh - 160px + ${this.windowTop}px)`,
+                    // Fork: the glass theme has a taller header and derives its own height from this
+                    "--scroll-top": `${this.scrollTop}px`,
                 };
             } else {
                 return {
@@ -317,6 +320,7 @@ export default {
          * @returns {void}
          */
         onScroll() {
+            this.scrollTop = Math.min(window.top.scrollY, 400);
             if (window.top.scrollY <= 133) {
                 this.windowTop = window.top.scrollY;
             } else {
